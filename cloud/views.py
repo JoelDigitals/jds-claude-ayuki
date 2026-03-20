@@ -546,3 +546,9 @@ def token_verwaltung(request):
 
     tokens = ApiToken.objects.filter(user=request.user)
     return render(request, 'cloud/token_verwaltung.html', {'tokens': tokens})
+
+def logout(request):
+    from django.contrib.auth import logout as auth_logout
+    auth_logout(request)
+    messages.info(request, 'Du wurdest ausgeloggt.')
+    return redirect('index')

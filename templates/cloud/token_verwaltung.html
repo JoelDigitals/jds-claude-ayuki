@@ -1,82 +1,434 @@
 {% extends 'base.html' %}
 {% block title %}API Tokens — JDS Cloud{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* ── Token Management Styles ─────────────────────────────── */
+  .token-form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .token-form-card h2 {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .token-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 140px 1fr auto;
+    gap: 16px;
+    align-items: end;
+  }
+
+  @media (max-width: 768px) {
+    .token-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── Token Cards ─────────────────────────────────────────── */
+  .token-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .token-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .token-card:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .token-card.inactive {
+    border-left-color: var(--danger);
+    opacity: 0.7;
+  }
+
+  .token-card.inactive:hover {
+    border-color: var(--danger);
+  }
+
+  .token-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .token-name {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-light);
+    border: 1px solid var(--accent);
+  }
+
+  .badge-inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+
+  .token-meta {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ── Token Display ───────────────────────────────────────── */
+  .token-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .token-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    user-select: all;
+  }
+
+  .token-value.revealed {
+    color: var(--accent-cyan);
+    word-break: break-all;
+    white-space: normal;
+  }
+
+  .token-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-light);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .token-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .token-stats {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .token-stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .token-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Documentation ───────────────────────────────────────── */
+  .docs-card {
+    margin-top: 40px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(34, 211, 238, 0.05) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+
+  .docs-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .docs-header h3 {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-light);
+  }
+
+  .docs-icon {
+    font-size: 24px;
+  }
+
+  .endpoint-list {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .endpoint {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .endpoint:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .endpoint:first-child {
+    padding-top: 0;
+  }
+
+  .method {
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .method-post {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--accent-light);
+  }
+
+  .method-get {
+    background: rgba(34, 211, 238, 0.2);
+    color: var(--accent-cyan);
+  }
+
+  .method-delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+  }
+
+  .path {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .description {
+    color: var(--muted);
+    margin-left: auto;
+    font-size: 12px;
+  }
+
+  .auth-header {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .auth-header .label {
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .auth-header .value {
+    color: var(--accent-cyan);
+    word-break: break-all;
+  }
+
+  .code-example {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  .code-example pre {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .code-example .comment {
+    color: var(--muted);
+  }
+
+  .code-example .string {
+    color: #a5d6ff;
+  }
+
+  .code-example .keyword {
+    color: #ff7b72;
+  }
+
+  .code-example .function {
+    color: #d2a8ff;
+  }
+
+  .base-url {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .base-url .label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .base-url .url {
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-size: 14px;
+    word-break: break-all;
+  }
+
+  /* ── Empty State ─────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title" style="font-family:var(--font-head)">API Tokens</h1>
-  <p style="color:var(--muted);font-size:13px">Tokens für externe Projekte (z.B. JDS-Verein)</p>
+  <h1 class="page-title">API Tokens</h1>
+  <p class="page-subtitle">Verwalte Zugriffsschlüssel für externe Integrationen (z.B. JDS-Verein)</p>
 </div>
 
 <!-- Neuer Token -->
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:28px">
-  <h2 style="font-family:var(--font-head);font-size:16px;margin-bottom:18px">Neuen Token erstellen</h2>
-  <form method="post" style="display:grid;grid-template-columns:1fr 140px 1fr auto;gap:10px;align-items:end">
+<div class="token-form-card">
+  <h2>Neuen Token erstellen</h2>
+  <form method="post" class="token-form-grid">
     {% csrf_token %}
     <input type="hidden" name="aktion" value="erstellen">
+    
     <div class="form-group" style="margin:0">
       <label>Token-Name *</label>
       <input type="text" name="name" placeholder='z.B. "JDS-Verein Produktion"' required>
     </div>
+    
     <div class="form-group" style="margin:0">
-      <label>Verein-ID</label>
+      <label>ID</label>
       <input type="number" name="verein_id" placeholder="z.B. 1">
     </div>
+    
     <div class="form-group" style="margin:0">
-      <label>Vereinsname</label>
+      <label>Name</label>
       <input type="text" name="verein_name" placeholder='z.B. "TSV Musterstadt"'>
     </div>
+    
     <button type="submit" class="btn btn-primary">Erstellen</button>
   </form>
 </div>
 
 <!-- Token-Liste -->
 {% if tokens %}
-<div style="display:flex;flex-direction:column;gap:12px">
+<div class="token-list">
   {% for t in tokens %}
-  <div style="background:var(--surface);border:1px solid {% if t.aktiv %}var(--border){% else %}#3a1a1a{% endif %};border-left:3px solid {% if t.aktiv %}var(--accent){% else %}var(--danger){% endif %};border-radius:8px;padding:18px 20px">
-    <div style="display:flex;align-items:start;justify-content:space-between;gap:16px">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <span style="font-family:var(--font-head);font-weight:700;font-size:15px">{{ t.name }}</span>
-          {% if t.aktiv %}
-          <span style="background:rgba(200,241,53,.15);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em">AKTIV</span>
-          {% else %}
-          <span style="background:rgba(255,68,68,.1);color:var(--danger);border:1px solid var(--danger);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em">DEAKTIVIERT</span>
-          {% endif %}
-          {% if t.verein_name %}
-          <span style="color:var(--muted);font-size:12px">• {{ t.verein_name }}{% if t.verein_id %} (ID: {{ t.verein_id }}){% endif %}</span>
-          {% endif %}
-        </div>
+  <div class="token-card {% if not t.aktiv %}inactive{% endif %}">
+    <div class="token-header">
+      <span class="token-name">{{ t.name }}</span>
+      {% if t.aktiv %}
+      <span class="badge badge-active">Aktiv</span>
+      {% else %}
+      <span class="badge badge-inactive">Deaktiviert</span>
+      {% endif %}
+      {% if t.verein_name %}
+      <span class="token-meta">• {{ t.verein_name }}{% if t.verein_id %} (ID: {{ t.verein_id }}){% endif %}</span>
+      {% endif %}
+    </div>
 
-        <!-- Token anzeigen -->
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 12px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:12px">
-          <span id="token-{{ t.pk }}" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">{{ t.token|slice:":8" }}••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
-          <button onclick="toggleToken('{{ t.pk }}', '{{ t.token }}')" class="action-btn" style="font-size:11px;padding:3px 8px">Anzeigen</button>
-          <button onclick="copyLink('{{ t.token }}')" class="action-btn" title="Kopieren">📋</button>
-        </div>
+    <!-- Token anzeigen -->
+    <div class="token-display">
+      <span id="token-{{ t.pk }}" class="token-value">{{ t.token|slice:":8" }}••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
+      <button onclick="toggleToken('{{ t.pk }}', '{{ t.token }}')" class="token-btn">Anzeigen</button>
+      <button onclick="copyLink('{{ t.token }}')" class="token-btn" title="Kopieren">📋 Kopieren</button>
+    </div>
 
-        <div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">
-          Erstellt: {{ t.created_at|date:"d.m.Y H:i" }}
-          {% if t.last_used %} · Zuletzt: {{ t.last_used|date:"d.m.Y H:i" }}{% else %} · Noch nie verwendet{% endif %}
-        </div>
-      </div>
+    <div class="token-stats">
+      <span>📅 Erstellt: {{ t.created_at|date:"d.m.Y H:i" }}</span>
+      <span>🕐 {% if t.last_used %}Zuletzt: {{ t.last_used|date:"d.m.Y H:i" }}{% else %}Noch nie verwendet{% endif %}</span>
+    </div>
 
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        {% if t.aktiv %}
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="aktion" value="deaktivieren">
-          <input type="hidden" name="pk" value="{{ t.pk }}">
-          <button type="submit" class="btn btn-ghost btn-sm">Deaktivieren</button>
-        </form>
-        {% endif %}
-        <form method="post" onsubmit="return confirm('Token wirklich löschen?')">
-          {% csrf_token %}
-          <input type="hidden" name="aktion" value="loeschen">
-          <input type="hidden" name="pk" value="{{ t.pk }}">
-          <button type="submit" class="btn btn-sm" style="border-color:var(--danger);color:var(--danger)">Löschen</button>
-        </form>
-      </div>
+    <div class="token-actions">
+      {% if t.aktiv %}
+      <form method="post" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="aktion" value="deaktivieren">
+        <input type="hidden" name="pk" value="{{ t.pk }}">
+        <button type="submit" class="btn btn-ghost btn-sm">Deaktivieren</button>
+      </form>
+      {% endif %}
+      <form method="post" onsubmit="return confirm('Token wirklich löschen? Dies kann nicht rückgängig gemacht werden!')" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="aktion" value="loeschen">
+        <input type="hidden" name="pk" value="{{ t.pk }}">
+        <button type="submit" class="btn btn-sm" style="border-color:var(--danger);color:var(--danger)">Löschen</button>
+      </form>
     </div>
   </div>
   {% endfor %}
@@ -85,29 +437,106 @@
 <div class="empty-state">
   <div class="empty-icon">🔑</div>
   <p>Noch keine API-Tokens erstellt.</p>
+  <p style="font-size:13px;margin-top:8px;">Erstelle einen Token, um die API zu nutzen.</p>
 </div>
 {% endif %}
 
-<!-- Doku Box -->
-<div style="margin-top:32px;background:rgba(200,241,53,.04);border:1px solid rgba(200,241,53,.2);border-radius:8px;padding:24px">
-  <h3 style="font-family:var(--font-head);font-size:15px;margin-bottom:16px;color:var(--accent)">📡 API-Dokumentation</h3>
-  <div style="font-size:12px;font-family:var(--font-mono);line-height:2;color:var(--text)">
-    <div style="margin-bottom:12px">
-      <span style="color:var(--muted)">Base-URL:</span>
-      <span style="color:var(--accent2)">http://{{ request.get_host }}</span>
+<!-- API-Dokumentation -->
+<div class="docs-card">
+  <div class="docs-header">
+    <span class="docs-icon">📡</span>
+    <h3>API-Dokumentation</h3>
+  </div>
+
+  <div class="base-url">
+    <div class="label">Base-URL</div>
+    <div class="url">http://{{ request.get_host }}/api/v1/</div>
+  </div>
+
+  <div class="auth-header">
+    <div class="label">Authentifizierung (Header)</div>
+    <div class="value">Authorization: Bearer &lt;dein-token&gt;</div>
+  </div>
+
+  <div class="endpoint-list">
+    <div class="endpoint">
+      <span class="method method-post">POST</span>
+      <span class="path">/upload/</span>
+      <span class="description">Dateien hochladen (multipart/form-data, field: "files")</span>
     </div>
-    <div style="background:var(--bg);border-radius:5px;padding:14px;line-height:1.8">
-      <div><span style="color:var(--accent)">POST</span>  /api/v1/upload/  <span style="color:var(--muted)"># Dateien hochladen (multipart, field: files)</span></div>
-      <div><span style="color:var(--accent2)">GET</span>   /api/v1/files/   <span style="color:var(--muted)"># Dateien auflisten (?verein_id=1&kontext=beleg)</span></div>
-      <div><span style="color:var(--danger)">DELETE</span> /api/v1/files/&lt;id&gt;/  <span style="color:var(--muted)"># Datei löschen</span></div>
-      <div><span style="color:var(--accent2)">GET</span>   /api/v1/info/    <span style="color:var(--muted)"># Token-Info + Speicher-Statistik</span></div>
+    <div class="endpoint">
+      <span class="method method-get">GET</span>
+      <span class="path">/files/</span>
+      <span class="description">Dateien auflisten (?verein_id=1&kontext=beleg&limit=50)</span>
     </div>
-    <div style="margin-top:12px;color:var(--muted)">
-      Header: <span style="color:var(--text)">Authorization: Bearer &lt;token&gt;</span>
+    <div class="endpoint">
+      <span class="method method-delete">DELETE</span>
+      <span class="path">/files/&lt;id&gt;/</span>
+      <span class="description">Datei löschen (permanent!)</span>
+    </div>
+    <div class="endpoint">
+      <span class="method method-get">GET</span>
+      <span class="path">/info/</span>
+      <span class="description">Token-Info + Speicher-Statistik</span>
     </div>
   </div>
-</div>
 
+  <h4 style="font-family:var(--font-head);font-size:14px;margin-bottom:12px;color:var(--text)">Beispiel: Python</h4>
+  <div class="code-example">
+<pre><span class="keyword">import</span> requests
+
+<span class="comment"># 1. Token und URL definieren</span>
+TOKEN = <span class="string">"jdcloud_abc123..."</span>
+BASE_URL = <span class="string">"http://{{ request.get_host }}/api/v1"</span>
+
+<span class="comment"># 2. Header vorbereiten</span>
+headers = {<span class="string">"Authorization"</span>: <span class="string">f"Bearer {TOKEN}"</span>}
+
+<span class="comment"># 3. Datei hochladen</span>
+<span class="keyword">with</span> <span class="function">open</span>(<span class="string">"rechnung.pdf"</span>, <span class="string">"rb"</span>) <span class="keyword">as</span> f:
+    files = {<span class="string">"files"</span>: f}
+    data = {<span class="string">"verein_id"</span>: <span class="string">"1"</span>, <span class="string">"kontext"</span>: <span class="string">"beleg"</span>}
+    response = requests.<span class="function">post</span>(
+        <span class="string">f"{BASE_URL}/upload/"</span>,
+        headers=headers,
+        files=files,
+        data=data
+    )
+    <span class="function">print</span>(response.json())  <span class="comment"># {"id": 123, "url": "..."}</span>
+
+<span class="comment"># 4. Dateien auflisten</span>
+response = requests.<span class="function">get</span>(
+    <span class="string">f"{BASE_URL}/files/?verein_id=1"</span>,
+    headers=headers
+)
+<span class="function">print</span>(response.json())  <span class="comment"># [{"id": 123, "name": "rechnung.pdf", ...}]</span></pre>
+  </div>
+
+  <h4 style="font-family:var(--font-head);font-size:14px;margin:24px 0 12px;color:var(--text)">Beispiel: cURL</h4>
+  <div class="code-example">
+<pre><span class="comment"># Datei hochladen</span>
+curl -X POST <span class="string">"http://{{ request.get_host }}/api/v1/upload/"</span> \
+  -H <span class="string">"Authorization: Bearer DEIN_TOKEN"</span> \
+  -F <span class="string">"files=@rechnung.pdf"</span> \
+  -F <span class="string">"verein_id=1"</span> \
+  -F <span class="string">"kontext=beleg"</span>
+
+<span class="comment"># Dateien auflisten</span>
+curl <span class="string">"http://{{ request.get_host }}/api/v1/files/?verein_id=1"</span> \
+  -H <span class="string">"Authorization: Bearer DEIN_TOKEN"</span></pre>
+  </div>
+
+  <div style="margin-top:24px;padding:16px;background:rgba(239,68,68,0.1);border-radius:var(--radius-sm);border-left:3px solid var(--danger)">
+    <strong style="color:var(--danger);font-size:13px;">⚠️ Wichtige Hinweise:</strong>
+    <ul style="margin:8px 0 0 16px;font-size:12px;color:var(--muted);line-height:1.8">
+      <li>Tokens sind geheim – behandle sie wie Passwörter!</li>
+      <li>Deaktivierte Tokens funktionieren nicht mehr, können aber reaktiviert werden.</li>
+      <li>Gelöschte Tokens sind unwiderruflich ungültig.</li>
+      <li>Maximale Dateigröße: 100MB pro Datei (kann konfiguriert werden).</li>
+      <li>Der Parameter <code>kontext</code> ist optional und dient der Kategorisierung (z.B. "beleg", "protokoll").</li>
+    </ul>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -115,11 +544,17 @@
 const tokenValues = {};
 function toggleToken(pk, val) {
   const el = document.getElementById('token-' + pk);
+  const btn = el.nextElementSibling;
+  
   if (tokenValues[pk]) {
-    el.textContent = val.slice(0, 8) + '•'.repeat(val.length - 8);
+    el.textContent = val.slice(0, 8) + '•'.repeat(56);
+    el.classList.remove('revealed');
+    btn.textContent = 'Anzeigen';
     tokenValues[pk] = false;
   } else {
     el.textContent = val;
+    el.classList.add('revealed');
+    btn.textContent = 'Verbergen';
     tokenValues[pk] = true;
   }
 }

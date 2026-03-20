@@ -676,42 +676,43 @@
     </div>
   </div>
   {% endfor %}
+  {% if files %}
+    {% for file in files %}
+    <div class="grid-item grid-file">
+      <div class="item-body" onclick="location.href='{% url 'download' file.pk %}'">
+        <div class="item-icon">{{ file.icon }}</div>
+        <div class="item-name" title="{{ file.original_name }}">{{ file.original_name }}</div>
+        <div class="item-meta mono">{{ file.size_human }} · .{{ file.extension }}</div>
+        {% if file.is_public %}
+        <div class="item-badge badge-public">öffentlich</div>
+        {% endif %}
+      </div>
+      <div class="item-actions">
+        <a href="{% url 'download' file.pk %}" class="action-btn" title="Herunterladen">⬇</a>
 
-  {% for file in files %}
-  <div class="grid-item grid-file">
-    <div class="item-body" onclick="location.href='{% url 'download' file.pk %}'">
-      <div class="item-icon">{{ file.icon }}</div>
-      <div class="item-name" title="{{ file.original_name }}">{{ file.original_name }}</div>
-      <div class="item-meta mono">{{ file.size_human }} · .{{ file.extension }}</div>
-      {% if file.is_public %}
-      <div class="item-badge badge-public">öffentlich</div>
-      {% endif %}
-    </div>
-    <div class="item-actions">
-      <a href="{% url 'download' file.pk %}" class="action-btn" title="Herunterladen">⬇</a>
+        <form method="post" action="{% url 'toggle_share' file.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="action-btn {% if file.is_public %}active{% endif %}" title="{% if file.is_public %}Teilen deaktivieren{% else %}Öffentlich teilen{% endif %}">
+            🔗
+          </button>
+        </form>
 
-      <form method="post" action="{% url 'toggle_share' file.pk %}" style="display:inline">
-        {% csrf_token %}
-        <button type="submit" class="action-btn {% if file.is_public %}active{% endif %}" title="{% if file.is_public %}Teilen deaktivieren{% else %}Öffentlich teilen{% endif %}">
-          🔗
+        {% if file.is_public %}
+        <button class="action-btn" title="Link kopieren"
+                onclick="copyLink('{{ request.scheme }}://{{ request.get_host }}{% url 'public_download' file.public_token %}')">
+          📋
         </button>
-      </form>
+        {% endif %}
 
-      {% if file.is_public %}
-      <button class="action-btn" title="Link kopieren"
-              onclick="copyLink('{{ request.scheme }}://{{ request.get_host }}{% url 'public_download' file.public_token %}')">
-        📋
-      </button>
-      {% endif %}
-
-      <form method="post" action="{% url 'delete' file.pk %}" style="display:inline"
-            onsubmit="return confirm('Datei löschen?')">
-        {% csrf_token %}
-        <button type="submit" class="action-btn danger" title="Löschen">✕</button>
-      </form>
+        <form method="post" action="{% url 'delete' file.pk %}" style="display:inline"
+              onsubmit="return confirm('Datei löschen?')">
+          {% csrf_token %}
+          <button type="submit" class="action-btn danger" title="Löschen">✕</button>
+        </form>
+      </div>
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
+  {% endif %}
 
   {% if not folders and not files %}
   <div class="empty-state">

@@ -1,5 +1,14 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+from dotenv import load_dotenv
+import environ
+env = environ.Env()
+environ.Env.read_env()  # Dies liest die geheime .env-Datei
+
+
+# Lade Umgebungsvariablen aus der .env-Datei (falls vorhanden)
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jds-claude-change-in-production'
@@ -48,10 +57,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'jds_claude.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db(),  # Liest die DATABASE_URL aus der .env Datei
 }
 
 AUTH_PASSWORD_VALIDATORS = [
