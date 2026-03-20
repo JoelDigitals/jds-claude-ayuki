@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{% block title %}JDS Cloud{% endblock %}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* ── Variables ─────────────────────────────────────────────────────────── */
+:root{
+--bg:#0d0d0d;
+--surface:#161616;
+--border:#2a2a2a;
+--accent:#c8f135;
+--accent2:#3be8b0;
+--text:#e8e8e4;
+--muted:#666;
+--danger:#ff4444;
+--radius:6px;
+--sidebar-w:220px;
+--font-head:'Syne',sans-serif;
+--font-mono:'DM Mono',monospace;
+}
+
+/* Reset */
+*,*:before,*:after{box-sizing:border-box;margin:0;padding:0}
+body{
+background:var(--bg);
+color:var(--text);
+font-family:var(--font-mono);
+min-height:100vh;
+}
+a{color:var(--accent);text-decoration:none}
+button,input,select{font-family:inherit}
+
+/* Layout */
+.sidebar{
+position:fixed;
+top:0;
+left:0;
+bottom:0;
+width:var(--sidebar-w);
+background:var(--surface);
+border-right:1px solid var(--border);
+display:flex;
+flex-direction:column;
+padding:24px 0;
+}
+
+.main-content{
+margin-left:var(--sidebar-w);
+padding:32px 40px;
+min-height:100vh;
+}
+
+/* Sidebar */
+.sidebar-logo{
+display:flex;
+align-items:center;
+gap:10px;
+padding:0 20px 28px;
+border-bottom:1px solid var(--border);
+}
+
+.logo-icon{
+font-size:22px;
+filter:drop-shadow(0 0 8px var(--accent));
+}
+
+.logo-text{
+font-family:var(--font-head);
+font-size:18px;
+font-weight:600;
+}
+
+.logo-text strong{
+color:var(--accent);
+}
+
+.sidebar-nav{
+flex:1;
+padding:16px 12px;
+display:flex;
+flex-direction:column;
+gap:4px;
+}
+
+.nav-item{
+display:flex;
+align-items:center;
+gap:10px;
+padding:9px 12px;
+border-radius:var(--radius);
+color:var(--muted);
+font-size:13px;
+transition:.15s;
+}
+
+.nav-item:hover{
+color:var(--text);
+background:rgba(255,255,255,.05);
+}
+
+.nav-item.active{
+color:var(--accent);
+background:rgba(200,241,53,.08);
+}
+
+.nav-icon{
+font-size:16px;
+width:20px;
+text-align:center;
+}
+
+.sidebar-bottom{
+padding:16px 12px 0;
+border-top:1px solid var(--border);
+display:flex;
+flex-direction:column;
+gap:8px;
+}
+
+.user-chip{
+display:flex;
+align-items:center;
+gap:10px;
+padding:8px 12px;
+}
+
+.user-avatar{
+width:28px;
+height:28px;
+background:var(--accent);
+color:#000;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:700;
+font-size:12px;
+font-family:var(--font-head);
+}
+
+.user-name{
+font-size:13px;
+}
+
+/* Messages */
+.messages-container{
+position:fixed;
+top:20px;
+right:20px;
+display:flex;
+flex-direction:column;
+gap:8px;
+z-index:999;
+}
+
+.message{
+background:var(--surface);
+border:1px solid var(--border);
+border-left:3px solid var(--accent);
+padding:10px 16px;
+border-radius:var(--radius);
+font-size:13px;
+animation:slideIn .2s ease;
+}
+
+.message-error{
+border-left-color:var(--danger);
+}
+
+@keyframes slideIn{
+from{opacity:0;transform:translateX(20px)}
+to{opacity:1}
+}
+
+/* Buttons */
+.btn{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:9px 18px;
+border-radius:var(--radius);
+font-size:13px;
+cursor:pointer;
+border:1px solid transparent;
+}
+
+.btn-primary{
+background:var(--accent);
+color:#000;
+font-weight:700;
+}
+
+.btn-primary:hover{
+background:#d6ff3a;
+}
+
+.btn-outline{
+border-color:var(--accent);
+color:var(--accent);
+}
+
+.btn-outline:hover{
+background:rgba(200,241,53,.1);
+}
+
+/* Responsive */
+@media(max-width:768px){
+
+.sidebar{
+display:none;
+}
+
+.main-content{
+margin-left:0;
+padding:20px;
+}
+
+}
+
+</style>
+
+{% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+{% if user.is_authenticated %}
+
+<nav class="sidebar">
+
+<div class="sidebar-logo">
+<span class="logo-icon">☁</span>
+<span class="logo-text">JDS<strong>Cloud</strong></span>
+</div>
+
+<div class="sidebar-nav">
+
+<a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+<span class="nav-icon">⊞</span>
+Dashboard
+</a>
+
+<a href="{% url 'search' %}" class="nav-item {% if request.resolver_match.url_name == 'search' %}active{% endif %}">
+<span class="nav-icon">⌕</span>
+Suche
+</a>
+
+<a href="{% url 'token_verwaltung' %}" class="nav-item {% if request.resolver_match.url_name == 'token_verwaltung' %}active{% endif %}">
+<span class="nav-icon">🔑</span>
+API Tokens
+</a>
+
+</div>
+
+<div class="sidebar-bottom">
+
+<div class="user-chip">
+<span class="user-avatar">{{ user.username|slice:":1"|upper }}</span>
+<span class="user-name">{{ user.username }}</span>
+</div>
+
+<a href="{% url 'logout' %}" class="nav-item logout">
+<span class="nav-icon">⏻</span>
+Abmelden
+</a>
+
+</div>
+
+</nav>
+
+<main class="main-content">
+
+{% endif %}
+
+{% if messages %}
+
+<div class="messages-container">
+{% for m in messages %}
+<div class="message message-{{ m.tags }}">{{ m }}</div>
+{% endfor %}
+</div>
+
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if user.is_authenticated %}
+</main>
+{% endif %}
+
+
+<script>
+
+/* Modal */
+function openModal(id){
+document.getElementById(id).classList.add("open")
+document.body.style.overflow="hidden"
+}
+
+function closeModal(id){
+document.getElementById(id).classList.remove("open")
+document.body.style.overflow=""
+}
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape"){
+document.querySelectorAll(".modal-overlay.open").forEach(m=>{
+m.classList.remove("open")
+document.body.style.overflow=""
+})
+}
+})
+
+
+/* Copy link */
+function copyLink(url){
+navigator.clipboard.writeText(url).then(()=>{
+showToast("Link kopiert 📋")
+})
+}
+
+function showToast(msg){
+
+const toast=document.createElement("div")
+
+toast.className="message"
+
+toast.textContent=msg
+
+toast.style.cssText="position:fixed;bottom:20px;right:20px;z-index:9999;"
+
+document.body.appendChild(toast)
+
+setTimeout(()=>toast.remove(),2500)
+
+}
+
+
+/* Auto dismiss messages */
+
+setTimeout(()=>{
+document.querySelectorAll(".messages-container .message").forEach(m=>{
+m.style.transition="opacity .4s"
+m.style.opacity="0"
+setTimeout(()=>m.remove(),400)
+})
+},3500)
+
+</script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

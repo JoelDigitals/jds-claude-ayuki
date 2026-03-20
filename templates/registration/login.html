@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JDS Cloud — Anmelden</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-card">
+  <a href="{% url 'index' %}" class="auth-logo">
+    <span class="logo-icon">☁</span>
+    <span class="logo-text">JDS<strong>Cloud</strong></span>
+  </a>
+  <h2 class="auth-title">Willkommen zurück</h2>
+
+  {% if form.errors %}
+  <div class="auth-error">Falscher Benutzername oder Passwort.</div>
+  {% endif %}
+
+  <form method="post" class="auth-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="id_username">Benutzername</label>
+      <input type="text" name="username" id="id_username" autofocus autocomplete="username" required>
+    </div>
+    <div class="form-group">
+      <label for="id_password">Passwort</label>
+      <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full">Anmelden</button>
+  </form>
+
+  <p class="auth-switch">Noch kein Account? <a href="{% url 'register' %}">Registrieren</a></p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,144 @@
+{% comment %}
+  Dieses Template in dein Vereinsprojekt unter templates/verein/cloud_dateien.html kopieren.
+  Es zeigt alle Dateien an, die in die JDS-Cloud hochgeladen wurden.
+{% endcomment %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto;padding:24px">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+    <div>
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">☁ JDS-Cloud Dateien</h1>
+      <p style="font-size:13px;color:#6b7280">Extern gespeicherte Vereinsdateien</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a href="{% url 'verein:cloud_status' %}" class="btn btn-sm btn-outline" target="_blank">
+        Status prüfen
+      </a>
+    </div>
+  </div>
+
+  {% if not cloud_ok %}
+  <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:16px;margin-bottom:20px;color:#991b1b">
+    <strong>⚠ Verbindung zur JDS-Cloud fehlgeschlagen</strong><br>
+    <small>{{ cloud_error }}</small><br>
+    <small style="color:#6b7280">Prüfe JDS_CLOUD_URL und JDS_CLOUD_TOKEN in settings.py</small>
+  </div>
+  {% endif %}
+
+  <!-- Filter + Suche -->
+  <form method="get" style="display:flex;gap:10px;margin-bottom:20px">
+    <select name="kontext" style="border:1px solid #d1d5db;border-radius:6px;padding:7px 12px;font-size:13px">
+      <option value="">Alle Kategorien</option>
+      {% for k in kontexte %}
+      <option value="{{ k }}" {% if kontext == k %}selected{% endif %}>{{ k|capfirst }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" name="q" value="{{ search }}" placeholder="Dateiname suchen…"
+           style="flex:1;border:1px solid #d1d5db;border-radius:6px;padding:7px 12px;font-size:13px">
+    <button type="submit" class="btn btn-primary btn-sm">Filtern</button>
+    {% if kontext or search %}
+    <a href="{% url 'verein:cloud_dateien' %}" class="btn btn-ghost btn-sm">Reset</a>
+    {% endif %}
+  </form>
+
+  <!-- Upload-Formular -->
+  <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:20px">
+    <h3 style="font-size:13px;font-weight:600;margin-bottom:12px;color:#374151">Datei hochladen</h3>
+    <form method="post" action="{% url 'verein:cloud_upload' %}" enctype="multipart/form-data"
+          style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+      {% csrf_token %}
+      <input type="hidden" name="redirect_to" value="{% url 'verein:cloud_dateien' %}">
+
+      <div>
+        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px">Dateien</label>
+        <input type="file" name="files" multiple required style="font-size:13px">
+      </div>
+
+      <div>
+        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px">Kategorie</label>
+        <select name="kontext" style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px">
+          {% for k in kontexte %}
+          <option value="{{ k }}">{{ k|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px">Ordner</label>
+        <input type="text" name="folder" placeholder="Ordnername (optional)"
+               style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;width:180px">
+      </div>
+
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" name="is_public"> Öffentlich
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-sm">↑ Hochladen</button>
+    </form>
+  </div>
+
+  <!-- Dateiliste -->
+  {% if dateien %}
+  <div style="font-size:12px;color:#6b7280;margin-bottom:12px">
+    {{ dateien|length }} Datei{% if dateien|length != 1 %}en{% endif %}
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead>
+      <tr style="border-bottom:2px solid #e5e7eb">
+        <th style="text-align:left;padding:8px 12px;font-weight:600;color:#374151">Datei</th>
+        <th style="text-align:left;padding:8px;color:#374151">Kategorie</th>
+        <th style="text-align:left;padding:8px;color:#374151">Größe</th>
+        <th style="text-align:left;padding:8px;color:#374151">Hochgeladen</th>
+        <th style="text-align:left;padding:8px;color:#374151">Aktionen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for datei in dateien %}
+      <tr style="border-bottom:1px solid #f3f4f6;{% if forloop.counter|divisibleby:2 %}background:#f9fafb{% endif %}">
+        <td style="padding:10px 12px">
+          <div style="font-weight:500">{{ datei.name }}</div>
+          {% if datei.public_url %}
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">
+            🔗 <a href="{{ datei.public_url }}" target="_blank" style="color:#3b82f6">Öffentlicher Link</a>
+          </div>
+          {% endif %}
+        </td>
+        <td style="padding:10px 8px">
+          {% if datei.kontext %}
+          <span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">
+            {{ datei.kontext }}
+          </span>
+          {% endif %}
+        </td>
+        <td style="padding:10px 8px;color:#6b7280;font-family:monospace">{{ datei.size_human }}</td>
+        <td style="padding:10px 8px;color:#6b7280;white-space:nowrap">
+          {{ datei.uploaded_at|slice:":10" }}
+        </td>
+        <td style="padding:10px 8px">
+          <div style="display:flex;gap:6px">
+            <a href="{{ datei.download_url }}" class="btn btn-ghost btn-sm" target="_blank">⬇ Download</a>
+            <form method="post" action="{% url 'verein:cloud_loeschen' datei.id %}"
+                  style="display:inline" onsubmit="return confirm('Datei aus Cloud löschen?')">
+              {% csrf_token %}
+              <input type="hidden" name="redirect_to" value="{% url 'verein:cloud_dateien' %}">
+              <button type="submit" class="btn btn-sm" style="border-color:#fca5a5;color:#dc2626">✕</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <div style="text-align:center;padding:60px 24px;color:#9ca3af">
+    <div style="font-size:48px;margin-bottom:12px">☁</div>
+    <p>Keine Dateien gefunden.</p>
+    <p style="font-size:12px;margin-top:4px">Lade oben die erste Datei hoch.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

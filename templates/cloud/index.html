@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JDS Cloud — Dein persönlicher Cloudspeicher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body class="landing-body">
+
+<header class="landing-header">
+  <div class="landing-logo">
+    <span class="logo-icon">☁</span>
+    <span class="logo-text">JDS<strong>Cloud</strong></span>
+  </div>
+  <div class="landing-header-actions">
+    <a href="{% url 'login' %}" class="btn btn-ghost">Anmelden</a>
+    <a href="{% url 'register' %}" class="btn btn-primary">Registrieren</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-badge">v1.0 · Dein persönlicher Speicher</div>
+  <h1 class="hero-title">Deine Dateien.<br><em>Sicher. Schnell. Dein.</em></h1>
+  <p class="hero-sub">JDS Cloud ist dein persönlicher Cloudspeicher — einfach hochladen, organisieren und teilen. Keine Drittanbieter, kein Tracking, volle Kontrolle.</p>
+  <div class="hero-actions">
+    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Kostenlos starten →</a>
+    <a href="{% url 'login' %}" class="btn btn-outline btn-lg">Einloggen</a>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature-card">
+    <div class="feature-icon">⬆</div>
+    <h3>Einfacher Upload</h3>
+    <p>Drag & Drop oder klassischer Dateidialog. Mehrere Dateien gleichzeitig hochladen.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📁</div>
+    <h3>Ordner & Struktur</h3>
+    <p>Ordner anlegen und beliebig verschachteln — genau wie auf deinem PC.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔗</div>
+    <h3>Teilen per Link</h3>
+    <p>Dateien mit einem Klick öffentlich teilen. Jederzeit widerrufbar.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">⚡</div>
+    <h3>REST-API</h3>
+    <p>Integriere die Cloud direkt in deine Django-App per JSON API — kein Framework nötig.</p>
+  </div>
+</section>
+
+</body>
+</html>

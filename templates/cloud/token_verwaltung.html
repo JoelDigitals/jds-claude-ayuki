@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}API Tokens — JDS Cloud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title" style="font-family:var(--font-head)">API Tokens</h1>
+  <p style="color:var(--muted);font-size:13px">Tokens für externe Projekte (z.B. JDS-Verein)</p>
+</div>
+
+<!-- Neuer Token -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:28px">
+  <h2 style="font-family:var(--font-head);font-size:16px;margin-bottom:18px">Neuen Token erstellen</h2>
+  <form method="post" style="display:grid;grid-template-columns:1fr 140px 1fr auto;gap:10px;align-items:end">
+    {% csrf_token %}
+    <input type="hidden" name="aktion" value="erstellen">
+    <div class="form-group" style="margin:0">
+      <label>Token-Name *</label>
+      <input type="text" name="name" placeholder='z.B. "JDS-Verein Produktion"' required>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Verein-ID</label>
+      <input type="number" name="verein_id" placeholder="z.B. 1">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label>Vereinsname</label>
+      <input type="text" name="verein_name" placeholder='z.B. "TSV Musterstadt"'>
+    </div>
+    <button type="submit" class="btn btn-primary">Erstellen</button>
+  </form>
+</div>
+
+<!-- Token-Liste -->
+{% if tokens %}
+<div style="display:flex;flex-direction:column;gap:12px">
+  {% for t in tokens %}
+  <div style="background:var(--surface);border:1px solid {% if t.aktiv %}var(--border){% else %}#3a1a1a{% endif %};border-left:3px solid {% if t.aktiv %}var(--accent){% else %}var(--danger){% endif %};border-radius:8px;padding:18px 20px">
+    <div style="display:flex;align-items:start;justify-content:space-between;gap:16px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-family:var(--font-head);font-weight:700;font-size:15px">{{ t.name }}</span>
+          {% if t.aktiv %}
+          <span style="background:rgba(200,241,53,.15);color:var(--accent);border:1px solid var(--accent);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em">AKTIV</span>
+          {% else %}
+          <span style="background:rgba(255,68,68,.1);color:var(--danger);border:1px solid var(--danger);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em">DEAKTIVIERT</span>
+          {% endif %}
+          {% if t.verein_name %}
+          <span style="color:var(--muted);font-size:12px">• {{ t.verein_name }}{% if t.verein_id %} (ID: {{ t.verein_id }}){% endif %}</span>
+          {% endif %}
+        </div>
+
+        <!-- Token anzeigen -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 12px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:12px">
+          <span id="token-{{ t.pk }}" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">{{ t.token|slice:":8" }}••••••••••••••••••••••••••••••••••••••••••••••••••••••••</span>
+          <button onclick="toggleToken('{{ t.pk }}', '{{ t.token }}')" class="action-btn" style="font-size:11px;padding:3px 8px">Anzeigen</button>
+          <button onclick="copyLink('{{ t.token }}')" class="action-btn" title="Kopieren">📋</button>
+        </div>
+
+        <div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">
+          Erstellt: {{ t.created_at|date:"d.m.Y H:i" }}
+          {% if t.last_used %} · Zuletzt: {{ t.last_used|date:"d.m.Y H:i" }}{% else %} · Noch nie verwendet{% endif %}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        {% if t.aktiv %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="aktion" value="deaktivieren">
+          <input type="hidden" name="pk" value="{{ t.pk }}">
+          <button type="submit" class="btn btn-ghost btn-sm">Deaktivieren</button>
+        </form>
+        {% endif %}
+        <form method="post" onsubmit="return confirm('Token wirklich löschen?')">
+          {% csrf_token %}
+          <input type="hidden" name="aktion" value="loeschen">
+          <input type="hidden" name="pk" value="{{ t.pk }}">
+          <button type="submit" class="btn btn-sm" style="border-color:var(--danger);color:var(--danger)">Löschen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🔑</div>
+  <p>Noch keine API-Tokens erstellt.</p>
+</div>
+{% endif %}
+
+<!-- Doku Box -->
+<div style="margin-top:32px;background:rgba(200,241,53,.04);border:1px solid rgba(200,241,53,.2);border-radius:8px;padding:24px">
+  <h3 style="font-family:var(--font-head);font-size:15px;margin-bottom:16px;color:var(--accent)">📡 API-Dokumentation</h3>
+  <div style="font-size:12px;font-family:var(--font-mono);line-height:2;color:var(--text)">
+    <div style="margin-bottom:12px">
+      <span style="color:var(--muted)">Base-URL:</span>
+      <span style="color:var(--accent2)">http://{{ request.get_host }}</span>
+    </div>
+    <div style="background:var(--bg);border-radius:5px;padding:14px;line-height:1.8">
+      <div><span style="color:var(--accent)">POST</span>  /api/v1/upload/  <span style="color:var(--muted)"># Dateien hochladen (multipart, field: files)</span></div>
+      <div><span style="color:var(--accent2)">GET</span>   /api/v1/files/   <span style="color:var(--muted)"># Dateien auflisten (?verein_id=1&kontext=beleg)</span></div>
+      <div><span style="color:var(--danger)">DELETE</span> /api/v1/files/&lt;id&gt;/  <span style="color:var(--muted)"># Datei löschen</span></div>
+      <div><span style="color:var(--accent2)">GET</span>   /api/v1/info/    <span style="color:var(--muted)"># Token-Info + Speicher-Statistik</span></div>
+    </div>
+    <div style="margin-top:12px;color:var(--muted)">
+      Header: <span style="color:var(--text)">Authorization: Bearer &lt;token&gt;</span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const tokenValues = {};
+function toggleToken(pk, val) {
+  const el = document.getElementById('token-' + pk);
+  if (tokenValues[pk]) {
+    el.textContent = val.slice(0, 8) + '•'.repeat(val.length - 8);
+    tokenValues[pk] = false;
+  } else {
+    el.textContent = val;
+    tokenValues[pk] = true;
+  }
+}
+</script>
+{% endblock %}

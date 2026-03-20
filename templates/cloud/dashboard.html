@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{% if current_folder %}{{ current_folder.name }} — {% endif %}JDS Cloud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'dashboard' %}" class="bc-item">Meine Cloud</a>
+    {% if breadcrumbs %}
+      {% for crumb in breadcrumbs %}
+        <span class="bc-sep">›</span>
+        {% if forloop.last %}
+          <span class="bc-item bc-active">{{ crumb.name }}</span>
+        {% else %}
+          <a href="{% url 'folder' crumb.pk %}" class="bc-item">{{ crumb.name }}</a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </nav>
+
+  <!-- Storage bar -->
+  <div class="storage-bar">
+    <span class="mono">{{ total_human }} genutzt · {{ total_files }} Datei{% if total_files != 1 %}en{% endif %}</span>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <!-- New folder -->
+  <button class="btn btn-ghost btn-sm" onclick="openModal('modal-folder')">
+    📁 Neuer Ordner
+  </button>
+
+  <!-- Upload -->
+  <button class="btn btn-primary btn-sm" onclick="openModal('modal-upload')">
+    ⬆ Hochladen
+  </button>
+</div>
+
+<!-- Grid: Folders first, then files -->
+<div class="file-grid">
+
+  {% for folder in folders %}
+  <div class="grid-item grid-folder">
+    <a href="{% url 'folder' folder.pk %}" class="item-body">
+      <div class="item-icon">📁</div>
+      <div class="item-name">{{ folder.name }}</div>
+      <div class="item-meta mono">{{ folder.files.count }} Datei{% if folder.files.count != 1 %}en{% endif %}</div>
+    </a>
+    <div class="item-actions">
+      <form method="post" action="{% url 'delete_folder' folder.pk %}" onsubmit="return confirm('Ordner und Inhalt löschen?')">
+        {% csrf_token %}
+        <button type="submit" class="action-btn danger" title="Löschen">✕</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% for file in files %}
+  <div class="grid-item grid-file">
+    <div class="item-body">
+      <div class="item-icon">{{ file.icon }}</div>
+      <div class="item-name" title="{{ file.original_name }}">{{ file.original_name }}</div>
+      <div class="item-meta mono">{{ file.size_human }} · .{{ file.extension }}</div>
+      {% if file.is_public %}
+      <div class="item-badge badge-public">öffentlich</div>
+      {% endif %}
+    </div>
+    <div class="item-actions">
+      <a href="{% url 'download' file.pk %}" class="action-btn" title="Herunterladen">⬇</a>
+
+      <form method="post" action="{% url 'toggle_share' file.pk %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" class="action-btn {% if file.is_public %}active{% endif %}" title="{% if file.is_public %}Teilen deaktivieren{% else %}Öffentlich teilen{% endif %}">
+          🔗
+        </button>
+      </form>
+
+      {% if file.is_public %}
+      <button class="action-btn" title="Link kopieren"
+              onclick="copyLink('{{ request.scheme }}://{{ request.get_host }}{% url 'public_download' file.public_token %}')">
+        📋
+      </button>
+      {% endif %}
+
+      <form method="post" action="{% url 'delete' file.pk %}" style="display:inline"
+            onsubmit="return confirm('Datei löschen?')">
+        {% csrf_token %}
+        <button type="submit" class="action-btn danger" title="Löschen">✕</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if not folders and not files %}
+  <div class="empty-state">
+    <div class="empty-icon">☁</div>
+    <p>Dieser Ordner ist leer.</p>
+    <button class="btn btn-primary" onclick="openModal('modal-upload')">Erste Datei hochladen</button>
+  </div>
+  {% endif %}
+
+</div><!-- /.file-grid -->
+
+
+<!-- ── Modal: Upload ────────────────────────────────────────────── -->
+<div id="modal-upload" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-upload')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+    <h2 class="modal-title">Dateien hochladen</h2>
+
+    <form method="post" action="{% url 'upload' %}" enctype="multipart/form-data" id="upload-form">
+      {% csrf_token %}
+      <input type="hidden" name="folder_id" value="{{ current_folder.pk|default:'' }}">
+
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-icon">⬆</div>
+        <p>Dateien hierher ziehen<br><small>oder klicken zum Auswählen</small></p>
+        <input type="file" name="files" id="file-input" multiple class="drop-input">
+      </div>
+
+      <div id="file-preview" class="file-preview-list"></div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="upload-btn" disabled>
+        Hochladen
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ── Modal: Neuer Ordner ──────────────────────────────────────── -->
+<div id="modal-folder" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-folder')">
+  <div class="modal modal-sm">
+    <button class="modal-close" onclick="closeModal('modal-folder')">✕</button>
+    <h2 class="modal-title">Neuer Ordner</h2>
+
+    <form method="post" action="{% url 'create_folder' %}">
+      {% csrf_token %}
+      <input type="hidden" name="parent_id" value="{{ current_folder.pk|default:'' }}">
+      <div class="form-group">
+        <label for="folder-name">Name</label>
+        <input type="text" id="folder-name" name="name" placeholder="z.B. Projekte" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Erstellen</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

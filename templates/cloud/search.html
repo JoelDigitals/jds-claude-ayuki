@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Suche — JDS Cloud{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Suche</h1>
+</div>
+
+<form method="get" action="{% url 'search' %}" class="search-form">
+  <input type="text" name="q" value="{{ query }}" placeholder="Dateiname suchen…" autofocus class="search-input">
+  <button type="submit" class="btn btn-primary">Suchen</button>
+</form>
+
+{% if query %}
+  <p class="search-info mono">{{ files.count }} Ergebnis{% if files.count != 1 %}se{% endif %} für „{{ query }}"</p>
+
+  <div class="file-grid">
+  {% for file in files %}
+  <div class="grid-item grid-file">
+    <div class="item-body">
+      <div class="item-icon">{{ file.icon }}</div>
+      <div class="item-name">{{ file.original_name }}</div>
+      <div class="item-meta mono">{{ file.size_human }} · {{ file.uploaded_at|date:"d.m.Y" }}</div>
+    </div>
+    <div class="item-actions">
+      <a href="{% url 'download' file.pk %}" class="action-btn" title="Download">⬇</a>
+      {% if file.folder %}
+      <a href="{% url 'folder' file.folder.pk %}" class="action-btn" title="Ordner öffnen">📁</a>
+      {% else %}
+      <a href="{% url 'dashboard' %}" class="action-btn" title="Dashboard">⊞</a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-icon">⌕</div>
+    <p>Keine Dateien gefunden.</p>
+  </div>
+  {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}
