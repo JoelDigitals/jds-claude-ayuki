@@ -1,14 +1,11 @@
 from pathlib import Path
 import os
-from dotenv import load_dotenv
-from dotenv import load_dotenv
 import environ
 env = environ.Env()
 environ.Env.read_env()  # Dies liest die geheime .env-Datei
 
 
 # Lade Umgebungsvariablen aus der .env-Datei (falls vorhanden)
-load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-jds-claude-change-in-production'
